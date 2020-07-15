@@ -18,6 +18,8 @@ apps:
     environment:
       NODE_PATH: $SNAP
     plugs:
+      - bluez
+      - bluetooth-control
       - network
       - network-bind
 
@@ -49,10 +51,10 @@ parts:
       cp -av $SNAPCRAFT_PART_SRC/../npm/bin/npm $SNAPCRAFT_PART_INSTALL/bin/
       cp -av $SNAPCRAFT_PART_SRC/../npm/lib $SNAPCRAFT_PART_INSTALL/
 
-      # patch settings.js so teh app uses SNAP_DATA for writable bits
+      # patch settings.js so the app uses SNAP_DATA for writable bits
       sed -i 's/__dirname/process.env["SNAP_DATA"]/' settings.js
 
-      # copy the app
+      # copy the app data
       cp -av node_modules $SNAPCRAFT_PART_INSTALL/
       cp -av static $SNAPCRAFT_PART_INSTALL/
       cp -av lib $SNAPCRAFT_PART_INSTALL/
