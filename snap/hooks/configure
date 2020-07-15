@@ -1,0 +1,14 @@
+#! /bin/sh
+
+[ -d "$SNAP_DATA/cache" ] || mkdir $SNAP_DATA/cache
+[ -d "$SNAP_DATA/static" ] || cp -a $SNAP/static $SNAP_DATA/
+[ -d "$SNAP_DATA/presets" ] || mkdir $SNAP_DATA/presets
+
+# we started originally with disabled service, make sure it is enabled
+# since we are sure defaults are set and interfaces are connected
+if snapctl services ${SNAP_NAME}.${SNAP_NAME} | grep -q inactive; then
+  snapctl start --enable ${SNAP_NAME}.${SNAP_NAME} 2>&1 || true
+  exit 0
+fi
+
+snapctl restart ${SNAP_NAME}.${SNAP_NAME} 2>&1 || true

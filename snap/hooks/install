@@ -1,0 +1,5 @@
+#! /bin/sh
+
+# we want to have the service stopped on install, only start it once 
+# the configure hook has run
+snapctl stop --disable ${SNAP_NAME}.${SNAP_NAME} 2>&1 || true

@@ -1,0 +1,62 @@
+name: vinyl-emulator
+base: core18
+version: '0.1'
+summary: Experience the tactile nature of a vinyl music collection
+description: |
+  Replicate the tactility and collection-building aspects of vinyl
+  while relying on Spotify to actually deliver the music. Placing a
+  physical object on an NFC reader hooked up to a Raspberry Pi (both
+  of which can be hidden away) will start playing the album
+  associated with that tag.
+grade: stable
+confinement: strict
+
+apps:
+  vinyl-emulator:
+    command: node $SNAP/server.js
+    daemon: simple
+    environment:
+      NODE_PATH: $SNAP
+    plugs:
+      - network
+      - network-bind
+
+parts:
+  nodejs:
+    plugin: nodejs
+    nodejs-version: 12.18.2
+    nodejs-package-manager: npm
+    source: https://github.com/jishi/node-sonos-http-api.git
+    stage-packages:
+      - libatomic1
+    override-build: |
+      PATH=$PATH:$SNAPCRAFT_PART_SRC/../npm/bin
+      npm config set unsafe-perm True
+
+      # workaround for build.snapcraft.io builds
+      # https://bugs.launchpad.net/bugs/1886861
+      if [ -n "$http_proxy" ]; then
+        export ELECTRON_GET_USE_PROXY=1
+        export GLOBAL_AGENT_HTTP_PROXY="${http_proxy}"
+        export GLOBAL_AGENT_HTTPS_PROXY="${http_proxy}"
+      fi
+
+      npm install --production
+
+      # copy node and npm
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin
+      cp -av $SNAPCRAFT_PART_SRC/../npm/bin/node $SNAPCRAFT_PART_INSTALL/bin/
+      cp -av $SNAPCRAFT_PART_SRC/../npm/bin/npm $SNAPCRAFT_PART_INSTALL/bin/
+      cp -av $SNAPCRAFT_PART_SRC/../npm/lib $SNAPCRAFT_PART_INSTALL/
+
+      # patch settings.js so teh app uses SNAP_DATA for writable bits
+      sed -i 's/__dirname/process.env["SNAP_DATA"]/' settings.js
+
+      # copy the app
+      cp -av node_modules $SNAPCRAFT_PART_INSTALL/
+      cp -av static $SNAPCRAFT_PART_INSTALL/
+      cp -av lib $SNAPCRAFT_PART_INSTALL/
+      cp -av presets $SNAPCRAFT_PART_INSTALL/
+      cp -av *.md $SNAPCRAFT_PART_INSTALL/
+      cp -av *.js $SNAPCRAFT_PART_INSTALL/
+      cp -av *.json $SNAPCRAFT_PART_INSTALL/
